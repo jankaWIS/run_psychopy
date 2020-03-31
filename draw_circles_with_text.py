@@ -16,13 +16,8 @@ white = '#FFFFFF'
 red = '#FF0000'
 green = '#00FF00'
 
-radius_pix = [np.floor(screen_size[0]/16), np.floor(screen_size[0]/16)]
+radius_pix = [np.floor(screen_size[0] / 16), np.floor(screen_size[0] / 16)]
 n_edges = 512
-n_ovals_per_dim = 40
-oval_col_ori_change = -30
-oval_row_ori_change = +30
-oval_edge_contrast = 1.0
-oval_line_width = 3.0
 
 # Parameters
 safe_value = 5
@@ -34,8 +29,6 @@ win = psychopy.visual.Window(
     color=gray
 )
 
-
-
 ####################
 #    Instructions
 ####################
@@ -43,7 +36,7 @@ win = psychopy.visual.Window(
 instructions = psychopy.visual.TextStim(
     win=win,
     color=black,
-    wrapWidth=np.floor(5*screen_size[1]/6),
+    wrapWidth=np.floor(5 * screen_size[1] / 6),
 )
 
 instructions.text = """
@@ -65,7 +58,7 @@ psychopy.event.waitKeys()
 instructions_example = psychopy.visual.TextStim(
     win=win,
     color=black,
-    wrapWidth=np.floor(5*screen_size[1]/6),
+    wrapWidth=np.floor(5 * screen_size[1] / 6),
     anchorVert='bottom'
 )
 
@@ -86,14 +79,12 @@ instructions_example.draw()
 instructions_spacebar = psychopy.visual.TextStim(
     win=win,
     color=black,
-    pos=(0, -np.floor(screen_size[1]/3))
+    pos=(0, -np.floor(screen_size[1] / 3))
 )
 
 instructions_spacebar.text = """Press spacebar to continue."""
 instructions_spacebar.size = 0.8
 instructions_spacebar.draw()
-
-
 
 safe_circle = psychopy.visual.Circle(
     win=win,
@@ -104,9 +95,9 @@ safe_circle = psychopy.visual.Circle(
     lineColor=black
 )
 
-safe_circle.pos = [np.floor(screen_size[0]/6), -np.floor(screen_size[1]/6)]
-safe_text = psychopy.visual.TextStim(win, text='+'+str(safe_value), color=black)
-safe_text.pos = [np.floor(screen_size[0] / 6), -np.floor(screen_size[1]/6)]
+safe_circle.pos = [np.floor(screen_size[0] / 6), -np.floor(screen_size[1] / 6)]
+safe_text = psychopy.visual.TextStim(win, text='+' + str(safe_value), color=black)
+safe_text.pos = [np.floor(screen_size[0] / 6), -np.floor(screen_size[1] / 6)]
 
 safe_circle.draw()
 safe_text.draw()
@@ -119,10 +110,10 @@ gain_circle = psychopy.visual.Polygon(
     fillColor=green,
     lineColor=black
 )
-gain_circle.vertices = gain_circle.vertices[:int(n_edges/2)+1]
-gain_circle.pos = [-np.floor(screen_size[0]/6), -np.floor(screen_size[1]/6)]
-gain_text = psychopy.visual.TextStim(win, text='+'+str(10), color=black)
-gain_text.pos = [-np.floor(screen_size[0]/6)+np.floor(radius_pix[0]/2), -np.floor(screen_size[1]/6)]
+gain_circle.vertices = gain_circle.vertices[:int(n_edges / 2) + 1]
+gain_circle.pos = [-np.floor(screen_size[0] / 6), -np.floor(screen_size[1] / 6)]
+gain_text = psychopy.visual.TextStim(win, text='+' + str(10), color=black)
+gain_text.pos = [-np.floor(screen_size[0] / 6) + np.floor(radius_pix[0] / 2), -np.floor(screen_size[1] / 6)]
 
 loss_circle = psychopy.visual.Polygon(
     win=win,
@@ -132,10 +123,10 @@ loss_circle = psychopy.visual.Polygon(
     fillColor=red,
     lineColor=black
 )
-loss_circle.vertices = loss_circle.vertices[int(n_edges/2)+1:]
-loss_circle.pos = [-np.floor(screen_size[0]/6), -np.floor(screen_size[1]/6)]
-loss_text = psychopy.visual.TextStim(win, text='-'+str(4), color=black)
-loss_text.pos = [-np.floor(screen_size[0]/6)-np.floor(radius_pix[0]/2), -np.floor(screen_size[1]/6)]
+loss_circle.vertices = loss_circle.vertices[int(n_edges / 2) + 1:]
+loss_circle.pos = [-np.floor(screen_size[0] / 6), -np.floor(screen_size[1] / 6)]
+loss_text = psychopy.visual.TextStim(win, text='-' + str(4), color=black)
+loss_text.pos = [-np.floor(screen_size[0] / 6) - np.floor(radius_pix[0] / 2), -np.floor(screen_size[1] / 6)]
 
 gain_circle.draw()
 loss_circle.draw()
@@ -145,10 +136,6 @@ loss_text.draw()
 win.flip()
 
 psychopy.event.waitKeys()
-
-
-
-
 
 ####################
 #    Experiment
@@ -163,7 +150,7 @@ safe_circle = psychopy.visual.Circle(
     lineColor=black
 )
 
-safe_circle.pos = [np.floor(screen_size[0]/6), 0]#np.floor(screen_size[1]/2)]
+safe_circle.pos = [np.floor(screen_size[0] / 6), 0]  # np.floor(screen_size[1]/2)]
 safe_text = psychopy.visual.TextStim(win, text=str(safe_value), color=black)
 safe_text.pos = [np.floor(screen_size[0] / 6), 0]
 
@@ -178,8 +165,8 @@ gain_circle = psychopy.visual.Polygon(
     fillColor=green,
     lineColor=black
 )
-gain_circle.vertices = gain_circle.vertices[:int(n_edges/2)+1]
-gain_circle.pos = [-np.floor(screen_size[0]/6), 0]#np.floor(screen_size[1]/2)]
+gain_circle.vertices = gain_circle.vertices[:int(n_edges / 2) + 1]
+gain_circle.pos = [-np.floor(screen_size[0] / 6), 0]  # np.floor(screen_size[1]/2)]
 
 loss_circle = psychopy.visual.Polygon(
     win=win,
@@ -189,8 +176,8 @@ loss_circle = psychopy.visual.Polygon(
     fillColor=red,
     lineColor=black
 )
-loss_circle.vertices = loss_circle.vertices[int(n_edges/2)+1:]
-loss_circle.pos = [-np.floor(screen_size[0]/6), 0] #np.floor(screen_size[1]/2)]
+loss_circle.vertices = loss_circle.vertices[int(n_edges / 2) + 1:]
+loss_circle.pos = [-np.floor(screen_size[0] / 6), 0]  # np.floor(screen_size[1]/2)]
 
 gain_circle.draw()
 loss_circle.draw()
@@ -198,6 +185,5 @@ loss_circle.draw()
 win.flip()
 
 psychopy.event.waitKeys()
-
 
 win.close()
