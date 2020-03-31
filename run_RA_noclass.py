@@ -1,6 +1,11 @@
+import csv
+import os
+import sys
+from datetime import date
+
 import numpy as np
 # import psychopy.visual
-from psychopy import monitors, core, visual, event
+from psychopy import monitors, core, visual, event, gui
 
 screen_sizes = []
 for mon in monitors.getAllMonitors():
@@ -24,6 +29,21 @@ safe_value = 5
 
 
 # Functions
+# https://github.com/marsja/psypy/blob/master/SART/SART.py
+def experimentInfo():
+    expName = u'Risk Aversion'
+    expInfo = {'Subject ID': '', 'Age': '',
+               'Sex': ['Male', 'Female']}
+    expInfo[u'date'] = date.today().strftime("%d-%m-%Y")
+    infoDlg = gui.DlgFromDict(dictionary=expInfo,
+                              title=expName, fixed=None)
+    # datafile = u'Data' + os.path.sep + u'DATA_SART.csv'
+    if infoDlg.OK:
+        return expInfo
+    else:
+        return 'Cancelled'
+
+
 def show_safe_circle(win, radius_pix=radius_pix, n_edges=n_edges, safe_value=safe_value,
                      x_pos=np.floor(screen_size[0] / 6), y_pos=0,
                      x_pos_text=np.floor(screen_size[0] / 6), y_pos_text=0
@@ -100,7 +120,7 @@ def show_loss_halfcircle(win, loss_value, radius_pix=radius_pix, n_edges=n_edges
 
     loss_circle.vertices = loss_circle.vertices[int(n_edges / 2) + 1:]
     loss_circle.pos = [x_pos, y_pos]  # np.floor(screen_size[1]/2)]
-    loss_text = visual.TextStim(win, text='+' + str(loss_value), color=black)
+    loss_text = visual.TextStim(win, text='-' + str(loss_value), color=black)
     loss_text.pos = [x_pos_text, y_pos_text]
 
     loss_circle.draw()
@@ -112,12 +132,12 @@ def runTrials(win, trial_sequence):
     Run experiment, receives trial sequence and stimuli, returns choice and reaction times
     :param win: screen to be plotted it on
     :param trial_sequence:
-    :return:
+    :return: choice and RT arrays
     """
-    response_choice = []
-    response_RT = []
+    response_choice = np.zeros(len(trial_sequence))  # []
+    response_RT = np.zeros(len(trial_sequence))  # []
     timer = core.Clock()
-    for trial in trial_sequence:
+    for i, trial in enumerate(trial_sequence):
         timer.reset()
         show_safe_circle(win)
         show_gain_halfcircle(win, gain_value=trial[0])
@@ -128,19 +148,27 @@ def runTrials(win, trial_sequence):
         keys = event.waitKeys(keyList=['escape', '1', '2', 'num_1', 'num_2', 'left', 'right'])
         for thisKey in keys:
             if thisKey in ['1', 'left', 'num_1']:
-                trial_RT = timer.getTime()
-                trial_choice = 1  # take risk
+                # trial_RT = timer.getTime()
+                # trial_choice = 1  # take risk
+                response_RT[i] = timer.getTime()
+                response_choice[i] = 1  # take risk
 
             elif thisKey in ['2', 'right', 'num_2']:
-                trial_RT = timer.getTime()
-                trial_choice = 0  # take safe
+                # trial_RT = timer.getTime()
+                # trial_choice = 0  # take safe
+                response_RT[i] = timer.getTime()
+                response_choice[i] = 0  # take safe
 
             elif thisKey == 'escape':
                 core.quit()  # abort experiment
+
+            else:
+                response_RT[i] = -1
+                response_choice[i] = -1  # no response
         event.clearEvents()  # clear other (eg mouse) events - they clog the buffer
 
-        response_choice.append(trial_choice)
-        response_RT.append(trial_RT)
+        # response_choice.append(trial_choice)
+        #response_RT.append(trial_RT)
 
     return response_choice, response_RT
 
@@ -178,6 +206,25 @@ def generate_gamble_values(min_gain=10, max_gain=40, step_gain=2, min_loss=10, m
     return gamble_values, indices_invers
 
 
+def makeDir(dirname):
+    import os
+    if not os.path.isdir(dirname):
+        os.makedirs(dirname)
+
+
+# Check existence
+expinfo = experimentInfo()  # with while not I can check input, not done TODO
+if expinfo == 'Cancelled':
+    print('User cancelled')
+    core.quit()
+
+data_path = 'subj' + expinfo['Subject ID'] + "_" + expinfo['date']
+if os.path.exists(data_path):
+    sys.exit("Data path " + data_path + " already exists!")
+else:
+    makeDir(data_path)
+
+# start screen
 win = visual.Window(
     size=screen_size,
     units="pix",
@@ -254,7 +301,7 @@ event.waitKeys()
 #    Experiment
 ####################
 
-experimental_values = generate_gamble_values(min_gain=2, max_gain=4, min_loss=2, max_loss=4)[0]
+experimental_values, order_values = generate_gamble_values(min_gain=2, max_gain=4, min_loss=2, max_loss=4)
 
 choice, RT = runTrials(win, experimental_values)
 
@@ -266,4 +313,26 @@ event.waitKeys()
 print('choice: ', choice)
 print('RT: ', RT)
 
+# save everything
+expinfo['Order of values'] = experimental_values
+expinfo['Reverse indices'] = order_values
+expinfo['Choice'] = choice
+expinfo['Choices sorted'] = choice[order_values]
+expinfo['RT'] = RT
+print(expinfo)
+
+# with open(data_path+'/experimental_Data', 'w') as csvfile:
+#     writer = csv.DictWriter(csvfile, fieldnames=expinfo.keys())
+#     writer.writeheader()
+#     for data in expinfo:
+#         writer.writerow(data)
+
+with open(data_path + '/experimental_Data', 'w') as csv_file:
+    writer = csv.writer(csv_file)
+    for key, value in expinfo.items():
+        writer.writerow([key, value])
+
+# with open('dict.csv') as csv_file:
+#     reader = csv.reader(csv_file)
+#     mydict = dict(reader)
 win.close()
