@@ -46,13 +46,15 @@ def experimentInfo():
 
 def show_safe_circle(win, radius_pix=radius_pix, n_edges=n_edges, safe_value=safe_value,
                      x_pos=np.floor(screen_size[0] / 6), y_pos=0,
-                     x_pos_text=np.floor(screen_size[0] / 6), y_pos_text=0
+                     x_pos_text=np.floor(screen_size[0] / 6), y_pos_text=0,
+                     hint=False
                      ):
     """
     Shows green circle on the right side with black text safe_value
     :param win: screen to show it on
     :param radius_pix: radius of circle
     :param n_edges: it is a polygon so how smooth it will be
+    :param hint: if to show a hint what key to press
     """
     safe_circle = visual.Circle(
         win=win,
@@ -66,6 +68,13 @@ def show_safe_circle(win, radius_pix=radius_pix, n_edges=n_edges, safe_value=saf
     safe_circle.pos = [x_pos, y_pos]  # np.floor(screen_size[1]/2)]
     safe_text = visual.TextStim(win, text=str(safe_value), color=black)
     safe_text.pos = [x_pos_text, y_pos_text]
+    if hint:
+        safe_hint = visual.TextStim(win, text='"2"', color=black)
+        safe_hint.pos = [x_pos, y_pos + np.floor(4 * radius_pix[0] / 3)]
+        safe_hint.draw()
+
+    safe_circle.draw()
+    safe_text.draw()
 
     safe_circle.draw()
     safe_text.draw()
@@ -101,13 +110,15 @@ def show_gain_halfcircle(win, gain_value, radius_pix=radius_pix, n_edges=n_edges
 
 def show_loss_halfcircle(win, loss_value, radius_pix=radius_pix, n_edges=n_edges,
                          x_pos=-np.floor(screen_size[0] / 6), y_pos=0,
-                         x_pos_text=-np.floor(screen_size[0] / 6) - np.floor(radius_pix[0] / 2), y_pos_text=0
+                         x_pos_text=-np.floor(screen_size[0] / 6) - np.floor(radius_pix[0] / 2), y_pos_text=0,
+                         hint=False
                          ):
     """
     Shows half green circle on the left-left side with black text +gain
     :param win: screen to show it on
     :param radius_pix: radius of circle
     :param n_edges: it is a polygon so how smooth it will be
+    :param hint: if to show a hint what key to press
     """
     loss_circle = visual.Polygon(
         win=win,
@@ -122,16 +133,22 @@ def show_loss_halfcircle(win, loss_value, radius_pix=radius_pix, n_edges=n_edges
     loss_circle.pos = [x_pos, y_pos]  # np.floor(screen_size[1]/2)]
     loss_text = visual.TextStim(win, text='-' + str(loss_value), color=black)
     loss_text.pos = [x_pos_text, y_pos_text]
+    if hint:
+        loss_hint = visual.TextStim(win, text='"1"', color=black)
+        loss_hint.pos = [x_pos, y_pos + np.floor(4 * radius_pix[0] / 3)]
+        loss_hint.draw()
 
     loss_circle.draw()
     loss_text.draw()
 
 
-def runTrials(win, trial_sequence):
+def runTrials(win, trial_sequence, time_limit=3):
     """
     Run experiment, receives trial sequence and stimuli, returns choice and reaction times
+    Default values for keys (from which to collect) are 1,2 (also on NumPad) and left,right arrow
     :param win: screen to be plotted it on
     :param trial_sequence:
+    :param time_limit: float, time to respond, default 3 s
     :return: choice and RT arrays
     """
     response_choice = np.zeros(len(trial_sequence))  # []
@@ -145,26 +162,28 @@ def runTrials(win, trial_sequence):
         win.flip()
 
         # https://discourse.psychopy.org/t/numbers-on-the-right-side-of-the-keyboard-are-not-working/1728/3
-        keys = event.waitKeys(keyList=['escape', '1', '2', 'num_1', 'num_2', 'left', 'right'])
-        for thisKey in keys:
-            if thisKey in ['1', 'left', 'num_1']:
-                # trial_RT = timer.getTime()
-                # trial_choice = 1  # take risk
-                response_RT[i] = timer.getTime()
-                response_choice[i] = 1  # take risk
+        keys = event.waitKeys(maxWait=time_limit, keyList=['escape', '1', '2', 'num_1', 'num_2', 'left', 'right'])
+        # returns None if no-response, else returns list
 
-            elif thisKey in ['2', 'right', 'num_2']:
-                # trial_RT = timer.getTime()
-                # trial_choice = 0  # take safe
-                response_RT[i] = timer.getTime()
-                response_choice[i] = 0  # take safe
+        if keys is None:
+            response_RT[i] = -1
+            response_choice[i] = -1  # no response
 
-            elif thisKey == 'escape':
-                core.quit()  # abort experiment
+        elif any(elem in ['1', 'left', 'num_1'] for elem in keys):
+            # trial_RT = timer.getTime()
+            # trial_choice = 1  # take risk
+            response_RT[i] = timer.getTime()
+            response_choice[i] = 1  # take risk
 
-            else:
-                response_RT[i] = -1
-                response_choice[i] = -1  # no response
+        elif any(elem in ['2', 'right', 'num_2'] for elem in keys):
+            # trial_RT = timer.getTime()
+            # trial_choice = 0  # take safe
+            response_RT[i] = timer.getTime()
+            response_choice[i] = 0  # take safe
+
+        elif 'escape' in keys:
+            core.quit()  # abort experiment
+
         event.clearEvents()  # clear other (eg mouse) events - they clog the buffer
 
         # response_choice.append(trial_choice)
@@ -290,9 +309,9 @@ instructions_spacebar.size = 0.8
 instructions_spacebar.draw()
 
 y_pos_example = -np.floor(screen_size[1] / 6)
-show_safe_circle(win, y_pos=y_pos_example, y_pos_text=y_pos_example)
+show_safe_circle(win, y_pos=y_pos_example, y_pos_text=y_pos_example, hint=True)
 show_gain_halfcircle(win, gain_value=10, y_pos=y_pos_example, y_pos_text=y_pos_example)
-show_loss_halfcircle(win, loss_value=4, y_pos=y_pos_example, y_pos_text=y_pos_example)
+show_loss_halfcircle(win, loss_value=4, y_pos=y_pos_example, y_pos_text=y_pos_example, hint=True)
 win.flip()
 
 event.waitKeys()
