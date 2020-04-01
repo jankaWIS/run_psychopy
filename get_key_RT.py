@@ -100,3 +100,32 @@ print(response)
 print(test_seq)
 win.close()
 core.quit()
+
+# while timer.getTime() <= 10:
+#     # max_time = core.CountdownTimer(5)
+#     # while max_time.getTime() > 0:
+#     # https://discourse.psychopy.org/t/numbers-on-the-right-side-of-the-keyboard-are-not-working/1728/3
+#     keys = event.getKeys(keyList=['escape', '1', '2', 'num_1', 'num_2', 'left', 'right'])
+#     for thisKey in keys:
+#         if thisKey in ['1', 'left', 'num_1']:
+#             # trial_RT = timer.getTime()
+#             # trial_choice = 1  # take risk
+#             response_RT[i] = timer.getTime()
+#             response_choice[i] = 1  # take risk
+#             break
+#
+#         elif thisKey in ['2', 'right', 'num_2']:
+#             # trial_RT = timer.getTime()
+#             # trial_choice = 0  # take safe
+#             response_RT[i] = timer.getTime()
+#             response_choice[i] = 0  # take safe
+#             break
+#
+#         elif thisKey == 'escape':
+#             core.quit()  # abort experiment
+#     break  # break from while loop
+#
+# if keys is None:
+#     response_RT[i] = -1
+#     response_choice[i] = -1  # no response
+# event.clearEvents()  # clear other (eg mouse) events - they clog the buffer

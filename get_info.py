@@ -2,10 +2,29 @@
 import os
 import sys
 from datetime import date
+
 import numpy as np
-
 import psychopy.gui
+from psychopy import gui
 
+
+# https://github.com/marsja/psypy/blob/master/SART/SART.py
+def experimentInfo():
+    expName = u'Risk Aversion'
+    expInfo = {'Subject Id': '', 'Age': '',
+               'Sex': ['Male', 'Female']}
+    expInfo[u'date'] = date.today().strftime("%d-%m-%Y")
+    infoDlg = gui.DlgFromDict(dictionary=expInfo,
+                              title=expName, fixed=None)
+    # datafile = u'Data' + os.path.sep + u'DATA_SART.csv'
+    if infoDlg.OK:
+        return expInfo
+    else:
+        return 'Cancelled'
+
+
+x = experimentInfo()
+print(x)
 
 # Get input from the user
 gui = psychopy.gui.Dlg()
@@ -30,7 +49,6 @@ if os.path.exists(data_path):
 
 # Setup
 exp_data = []
-
 
 # save
 np.savetxt(data_path, exp_data, delimiter="\t")
