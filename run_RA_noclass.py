@@ -265,7 +265,10 @@ def return_result(choice_sequence, reward_sequence, safe_value, mode='safe', p=0
                 lottery = evaluate_gamble_reward(reward_sequence[idx], p)
         elif mode == 'fullRandom':
             idx = np.random.choice(reward_sequence.shape[0])
-            lottery = evaluate_gamble_reward(reward_sequence[idx], p)
+            if choice_sequence[idx] == 0:  # chose safe
+                lottery = safe_value
+            else:
+                lottery = evaluate_gamble_reward(reward_sequence[idx], p)
         return lottery
 
 
