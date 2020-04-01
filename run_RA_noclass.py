@@ -47,7 +47,7 @@ def experimentInfo():
 def show_safe_circle(win, radius_pix=radius_pix, n_edges=n_edges, safe_value=safe_value,
                      x_pos=np.floor(screen_size[0] / 6), y_pos=0,
                      x_pos_text=np.floor(screen_size[0] / 6), y_pos_text=0,
-                     hint=False
+                     hint=False, colour=green
                      ):
     """
     Shows green circle on the right side with black text safe_value
@@ -61,7 +61,7 @@ def show_safe_circle(win, radius_pix=radius_pix, n_edges=n_edges, safe_value=saf
         radius=radius_pix,
         units="pix",
         edges=n_edges,
-        fillColor=green,
+        fillColor=colour,
         lineColor=black
     )
 
@@ -187,7 +187,7 @@ def runTrials(win, trial_sequence, time_limit=3):
         event.clearEvents()  # clear other (eg mouse) events - they clog the buffer
 
         # response_choice.append(trial_choice)
-        #response_RT.append(trial_RT)
+        # response_RT.append(trial_RT)
 
     return response_choice, response_RT
 
@@ -229,6 +229,54 @@ def makeDir(dirname):
     import os
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
+
+
+def return_result(choice_sequence, reward_sequence, safe_value, mode='safe', p=0.5):
+    """
+    Given sequence of pairs [gain, loss] and corresponding choices (-1 no response, 0 safe, 1 gamble), safe value and
+    probability p of gain, returns random result (draw) of the lottery.
+    Checks if there are some valid responses, if none was made (only -1), returns string warning.
+    :param choice_sequence: array, contains -1 no response, 0 safe, 1 gamble
+    :param reward_sequence: array of arrays, contains pairs of [gain,loss] for each choice
+    :param safe_value: int, value given as a safe option
+    :param mode: str, default 'safe':
+        safe: If safe and at least one safe choice was made, return safe_value. If none was made, evaluate gamble
+              for a randomly selected choice
+        fullRandom: evaluate gamble for a randomly selected choice
+    :param p: float in range (0,1), probability of getting a gain
+    :return: ValueError if dimensions of choice and reward do not match, string warning if no valid choice was made,
+             int of gain/loss based on lottery draw
+    """
+    if choice_sequence.shape[0] != reward_sequence.shape[0]:
+        return ValueError("Reward and choice sequence have different length: {} and {}".format(reward_sequence.shape[0],
+                                                                                               choice_sequence.shape[
+                                                                                                   0]))
+
+    if sum(np.isin([0, 1], choice_sequence)) == 0:
+        return "No valid choice was made, no gain or loss is given."
+
+    else:
+        if mode == 'safe':
+            if 0 in choice_sequence:  # at least once a safe choice was made
+                lottery = safe_value
+            else:
+                # Random choice on 2D array works oddly https://github.com/numpy/numpy/issues/10835
+                idx = np.random.choice(reward_sequence.shape[0])
+                lottery = evaluate_gamble_reward(reward_sequence[idx], p)
+        elif mode == 'fullRandom':
+            idx = np.random.choice(reward_sequence.shape[0])
+            lottery = evaluate_gamble_reward(reward_sequence[idx], p)
+        return lottery
+
+
+def evaluate_gamble_reward(gamble, probability=0.5):
+    """
+    Given probability of gain and pair (array, list) [gamble, loss] returns either gain or loss with this probability
+    """
+    if np.random.random() < probability:
+        return gamble[0]  # gain
+    else:
+        return -gamble[1]  # loss
 
 
 # Check existence
@@ -323,6 +371,32 @@ event.waitKeys()
 experimental_values, order_values = generate_gamble_values(min_gain=2, max_gain=4, min_loss=2, max_loss=4)
 
 choice, RT = runTrials(win, experimental_values)
+
+# Show results to the subject
+result_to_subj = return_result(choice, experimental_values, safe_value, mode='safe')
+
+instructions.text = """
+Congratulations, the game is over. Now a lottery draw based on your decisions
+in the gambling game will be executed.
+"""
+instructions.draw()
+instructions_spacebar.draw()
+win.flip()
+event.waitKeys()
+
+if type(result_to_subj) == str:
+    instructions.text = """
+    No valid choice was made so no draw has been executed and there is no gain or loss.\n
+    \n
+    Thank you for messing up my experiment...\n
+    """
+    instructions.draw()
+else:
+    if result_to_subj < 0:
+        colour_lottery = red
+    else:
+        colour_lottery = green
+    show_safe_circle(win, safe_value=result_to_subj, x_pos=0, x_pos_text=0, colour=colour_lottery)
 
 instructions_spacebar.text = """Press spacebar to end."""
 instructions_spacebar.draw()
