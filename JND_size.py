@@ -9,8 +9,7 @@ from psychopy import visual
 
 
 # Functions
-def get_response(response_RT, response_choice, response_correct, err, correct,
-                 err_flag, first_error):
+def get_response(response_RT, response_choice, response_correct, err, correct, first_error):
     # https://discourse.psychopy.org/t/numbers-on-the-right-side-of-the-keyboard-are-not-working/1728/3
     keys = event.waitKeys(maxWait=time_limit, keyList=['escape', '1', '2', 'num_1', 'num_2', 'left', 'right'])
     # returns None if no-response, else returns list
@@ -39,7 +38,6 @@ def get_response(response_RT, response_choice, response_correct, err, correct,
         response_choice.append(1)
         response_correct.append(1)
         err += 1
-        err_flag = 1
         if not first_error:
             first_error = 1
 
@@ -67,7 +65,8 @@ path2stim = './stimuli/croped_images_360x360_px/'
 
 subj = 'test'
 refSize = 360  # 7.35 #360 #px #screen_size//4 # 73.5 mm
-initial_testSize = refSize * 1.3
+init_ratio = 0.3  # 30 % bigger/smaller (for smaller take - sign)
+dif = int(np.round(refSize * init_ratio))  # starting difference between Ref and Test
 time_limit = 3  # max RT in sec
 
 # Randomly choose stimuli
@@ -80,8 +79,8 @@ err = 0  # cumulative error count
 trial = 0
 prev = 1
 first_error = 0
-testSize_arr = 2 * [initial_testSize]  # create a list of all test sizes throughout the experiment
-testSize = initial_testSize
+testSize_arr = [2 * [refSize + dif]]  # create a list of all test sizes throughout the experiment
+testSize = testSize_arr[0]
 
 # Generate array of ISI for 500 ms
 isi = np.zeros(200) + 0.5
@@ -125,24 +124,24 @@ asterisk = visual.GratingStim(win, color=green,
 globalClock = core.Clock()
 
 # display instructions and wait
-message1 = visual.TextStim(win, color=black, pos=(0, 0)),
-text = """
+message1 = visual.TextStim(win, color=black, pos=(0, 0),
+                           text="""
      Your goal is to identify which of the stimuli is bigger.
     Press left arrow or "1" if you think the first stimuli is bigger and
     right arrow or 2 if the second stimuli is the bigger.  
     """)
 message2 = visual.TextStim(win, color=black, pos=(0, -np.floor(screen_size[1] / 3)),
-text = 'Hit a key when ready.')
+                           text='Hit a key when ready.')
 
 message1.draw()
 message2.draw()
-win.flip()  # to show our newly drawn 'stimuli'
+# show drawn text
+win.flip()
 #  pause until there's a keypress
 event.waitKeys()
 
 while game_on:
     correct = 0  # count correct answers in the trial
-    err_flag = 0
     thisKey = None
 
     # Create test stimuli
@@ -158,7 +157,7 @@ while game_on:
         # BiggerSmaller, ie Test(2) followed by Ref(1)
         order[trial] = 2
 
-        # Show sequence
+        # Show sequence, Test(2) Ref(1)
         trialClock = core.Clock()
 
         test_stim.draw()
@@ -201,10 +200,9 @@ while game_on:
             # response_choice[i] = 0
             # Incorrect
             response_RT.append(trialClock.getTime())
-            response_choice.append(1)
-            response_correct.append(1)
+            response_choice.append(2)
+            response_correct.append(0)
             err += 1
-            err_flag = 1
             if not first_error:
                 first_error = 1
 
@@ -218,19 +216,19 @@ while game_on:
         core.wait(1)
 
         # Check the other order of the pair, SB
-        order[trial] = 2
+        order[trial] = 1
 
-        # Show sequence
+        # Show sequence, Ref(1) Test(2)
         trialClock = core.Clock()
 
-        test_stim.draw()
+        ref_stim.draw()
         win.flip()
         core.wait(isi[trial])
 
         win.flip()  # show gray screen
         core.wait(isi[trial])
 
-        ref_stim.draw()
+        test_stim.draw()
         win.flip()
         core.wait(isi[trial])
 
@@ -249,24 +247,23 @@ while game_on:
             response_choice.append(-1)
             response_correct.append(-1)
 
-        elif any(elem in ['1', 'left', 'num_1'] for elem in keys):
+        elif any(elem in ['2', 'right', 'num_2'] for elem in keys):
             # response_RT[i] = trialClock.getTime()
             # response_choice[i] = 1  # Correct
             # Correct
             response_RT.append(trialClock.getTime())
-            response_choice.append(1)
+            response_choice.append(2)
             response_correct.append(1)
             correct += 1
 
-        elif any(elem in ['2', 'right', 'num_2'] for elem in keys):
+        elif any(elem in ['1', 'left', 'num_1'] for elem in keys):
             # response_RT[i] = timer.getTime()
             # response_choice[i] = 0
             # Incorrect
             response_RT.append(trialClock.getTime())
             response_choice.append(1)
-            response_correct.append(1)
+            response_correct.append(0)
             err += 1
-            err_flag = 1
             if not first_error:
                 first_error = 1
 
@@ -286,15 +283,32 @@ while game_on:
 
     # Change size
     if correct == 2:  # decrease
-        JND = testSize
-        testSize /= ratio
-        testSize_arr.append(2 * [testSize])
+        JND = dif  # TODO
 
         # Testing stopping criteria
         if err >= 6:
             game_on = False
+            break
 
+        # Decrase the step size
         if not prev and (ratio * 0.9) < 1:
             ratio *= 0.9
 
-core.quit()  # abort experiment
+        dif //= ratio  # decrease step
+        testSize = refSize + dif  # decrease the difference
+        testSize_arr.append(2 * [testSize])
+        prev = 1
+
+    else:
+        # Decrease the difference
+        if prev and (ratio * 0.9) < 1:
+            ratio *= 0.9
+
+        # Decrease the difference, take the maximum of absolute value of the difference if the dif is
+        # bigger than initial ratio
+        dif = int(np.sign(init_ratio) * np.round(min(np.abs(dif * ratio), np.abs(refSize * init_ratio))))
+        testSize = refSize + dif
+        testSize_arr.append(2 * [testSize])
+
+# abort experiment
+core.quit()
