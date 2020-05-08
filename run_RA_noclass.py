@@ -15,7 +15,7 @@ for mon in monitors.getAllMonitors():
 screen_size = screen_sizes[0]
 
 # Colours
-gray = '#969696'
+gray = '#7F7F7F'  # 127 127 127 # '#969696'
 black = '#000000'
 white = '#FFFFFF'
 red = '#FF0000'
