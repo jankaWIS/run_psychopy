@@ -1,4 +1,5 @@
 """measure your JND in orientation using a staircase method"""
+import csv
 import os
 from datetime import date
 
@@ -64,7 +65,7 @@ screen_size = screen_sizes[0]
 path2stim = './stimuli/croped_images_360x360_px/'
 
 subj = 'test'
-refSize = 360  # 7.35 #360 #px #screen_size//4 # 73.5 mm
+refSize = 277  # 7.35 #360 #px #screen_size//4 # 73.5 mm
 init_ratio = 0.3  # 30 % bigger/smaller (for smaller take - sign)
 dif = int(np.round(refSize * init_ratio))  # starting difference between Ref and Test
 time_limit = 3  # max RT in sec
@@ -90,12 +91,11 @@ response_choice = []
 response_correct = []
 
 # make a text file to save data
-expInfo = {'observer': subj, 'refSize': 0}
-expInfo['dateStr'] = date.today().strftime("%d-%m-%Y")  # data.getDateStr()  # add the current time
+expInfo = {'refSize': refSize, 'Stimuli': stim_name, 'dateStr': date.today().strftime("%d-%m-%Y")}
 
-fileName = expInfo['observer'] + '_' + expInfo['dateStr']
-dataFile = open(fileName + '.csv', 'w')  # a simple text file with 'comma-separated-values'
-dataFile.write('targetSide,oriIncrement,correct\n')
+fileName = str(subj) + '_JND_' + expInfo['dateStr']
+# dataFile = open(fileName + '.csv', 'w')  # a simple text file with 'comma-separated-values'
+# dataFile.write('targetSide,oriIncrement,correct\n')
 
 # start screen
 win = visual.Window(
@@ -121,7 +121,7 @@ asterisk = visual.GratingStim(win, color=green,
                               tex=None, mask='raisedCos', size=refSize // 10)
 
 # Start global time
-globalClock = core.Clock()
+start_exp = core.Clock()
 
 # display instructions and wait
 message1 = visual.TextStim(win, color=black, pos=(0, 0),
@@ -294,7 +294,7 @@ while game_on:
         if not prev and (ratio * 0.9) < 1:
             ratio *= 0.9
 
-        dif //= ratio  # decrease step
+        dif = int(np.round(dif / ratio))  # decrease step to a nearest int
         testSize = refSize + dif  # decrease the difference
         testSize_arr.append(2 * [testSize])
         prev = 1
@@ -310,5 +310,30 @@ while game_on:
         testSize = refSize + dif
         testSize_arr.append(2 * [testSize])
 
+# Save data
+expInfo['ISI'] = isi[:trial]
+expInfo['Order of values'] = order[:trial]
+expInfo['Test size'] = testSize_arr
+expInfo['Subject_choice'] = response_choice
+expInfo['Correct_Incorrect'] = response_correct
+expInfo['RT'] = response_RT
+expInfo['JND'] = JND
+expInfo['JND_perc'] = 100 * JND / refSize
+expInfo['Experiment Time'] = start_exp.getTime()
+print(expInfo)
+
+# with open(data_path + '/experimental_Data', 'w') as csv_file:
+with open(fileName, 'w') as csv_file:
+    writer = csv.writer(csv_file)
+    for key, value in expInfo.items():
+        writer.writerow([key, value])
+
+# Close
+message3 = visual.TextStim(win, color=black, pos=(0, -np.floor(screen_size[1] / 3)),
+                           text='This is the end of this part. Thank you.')
+
+message3.draw()
+win.flip()
+event.waitKeys()
 # abort experiment
 core.quit()
