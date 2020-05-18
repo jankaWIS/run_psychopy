@@ -1,0 +1,15 @@
+randomise_blocks,randomise_trials,display,Image_Left,Image_Right,Answer,Money
+,,Instructions,,,,
+,1,Trials,29.png,38.png,29.png,0
+,1,Trials,29.png,38.png,29.png,1
+,1,Trials,29.png,38.png,38.png,1
+,1,Trials,38.png,29.png,29.png,1
+,1,Trials,29.png,38.png,29.png,1
+,1,Trials,38.png,29.png,29.png,1
+,1,Trials,38.png,29.png,38.png,0
+,1,Trials,38.png,29.png,29.png,1
+,1,Trials,29.png,38.png,29.png,1
+,1,Trials,29.png,38.png,29.png,1
+,1,Trials,29.png,38.png,38.png,0
+,1,Trials,38.png,29.png,29.png,1
+,,End,,,,
