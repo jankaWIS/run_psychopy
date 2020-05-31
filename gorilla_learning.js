@@ -13,13 +13,32 @@ var noOfTrials = 5;//0;
 var loc_on_screen = '';
 var size_one = 0;// pixPerCm * refSize_cm;
 var size_two = 0;
-var correct;
-var incorrect;
+var correct = 0;
+var incorrect = 0;
 var feedback;
 var earnings = 0; // cumulative reward/loss
 
-var feedback_CSplus = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-var feedback_CSminus = feedback_CSplus.map(num => 1 - num) // form the corresponding 1-RS
+
+// Generate rew/pun vectors
+var RS = 0.7;//*noOfTrials;
+// var feedback_CSplus = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+// var feedback_CSminus = feedback_CSplus.map(num => 1-num) // form the corresponding 1-RS
+
+var ones;
+var zeros;
+(ones = []).length = Math.round(RS * noOfTrials);
+ones.fill(1); // 70
+// (ones = []).length = 30; ones.fill(1);
+(zeros = []).length = Math.round((1 - RS) * noOfTrials);
+zeros.fill(0); // 70
+// (zeros = []).length = 20; zeros.fill(0); // 70
+var RS_hig = ones.concat(zeros)
+var RS_low = RS_hig.map(num => 1 - num)
+//https://stackoverflow.com/questions/1295584/most-efficient-way-to-create-a-zero-filled-javascript-array
+
+// Generate random vectors
+var rewards = gorilla.shuffle(RS_hig);
+var punishments = gorilla.shuffle(RS_low);
 
 
 // Get technical details
@@ -59,7 +78,6 @@ gorilla.ready(() => {
         gorilla.refreshLayout();
 
         $('.continue-button').one('click', (event: JQueryEventObject) => {
-            //DisplayFinish();
             DisplayTrial();
         });
     }
@@ -90,97 +108,22 @@ gorilla.ready(() => {
         var responseTime = -5;
         var selectedNumber = '-5';
 
-        currentTrial++;
-
         $('#gorilla').hide();
-        //gorilla.populateAndLoad('#gorilla', 'response', {number1: 'First', number2: 'Second', image: refImage}, ()=>{
         gorilla.populateAndLoad('#gorilla', 'trial', {image: refImage, image1: refImage}, () => {
             $('#gorilla').show();
 
             $('.image').show();
             $('.image1').show();
-            //$('.number-zone').hide();
 
             //already randomised
-            $('.image').css('height', size_one + 'px').css('width', size_one + 'px');
+            $('.image').css('height', size_one + 'px').css('width', size_one + 'px'); // left image
             $('.image1').css('height', size_two + 'px').css('width', size_two + 'px');
 
+            $('.s-optimal').hide();
+            $('.s-suboptimal').hide();
             gorilla.refreshLayout();
             // this begins the gorilla stopwatch allowing us to record the reaction time of the user
             gorilla.startStopwatch();
-
-            //$('.number-zone').one('click', (event: JQueryEventObject) => {
-            // $('.image').one('click', (event: JQueryEventObject) => {
-            //             // In DisplyStimuli, it wasn't very obvious that anything had been selected
-            //             // Let's add a new class to the selected number zone so that the user knows it has been clicked
-            //             // This class has been defined in our 'Style' file
-            //             $(event.currentTarget).addClass('selected');
-            //             sequence_resp.cancel(); // for response within 3 s
-
-            //             // In DisplayStimuli, we immediately progressed upon selecting a stimuli
-            //             // Now, we can use gorilla.metric to upload some data about what the user has just done!
-
-            //             // gorilla.stopStopwatch(); this stops the stopwatch.  Note that the time on the stopwatch is still stored
-            //             // (like a real stopwatch) we can retrieve this using getStopwatch
-            //             gorilla.stopStopwatch();
-            //             var responseTime = gorilla.getStopwatch();
-
-            //             // In the template, we included the number in data-number on each number element
-            //             // We can access this now using data('number')
-            //             var selectedNumber = $(event.currentTarget).data('number');
-            //             if(loc_on_screen = 'TestRef'){
-            //             if(selectedNumber == 'Second'){
-            //                 // Correct
-            //                 ThisCorrect = 1;
-            //                 correct++;
-
-            //             } else if (selectedNumber == 'First') {
-            //                 // Incorrect
-            //                 ThisCorrect = 0;
-            //                 incorrect++;
-            //             }
-
-            //             } // end of size_two>size_one
-            //             else if(loc_on_screen = 'RefTest'){
-            //                 if(selectedNumber == 'First'){
-            //                 // Correct
-            //                 ThisCorrect = 1;
-            //                 correct++;
-            //                 } else if (selectedNumber == 'Second') {
-            //                     // Incorrect
-            //                     ThisCorrect = 0;
-            //                     incorrect++;
-            //                 }
-            //             }
-
-            //             // gorilla.metric submits metrics to the database
-            //             // it takes as an arguement a dictonary (a set of key/vlaue pairs)
-            //             // these keys must correspond to the 'key' properties entered in the 'Metrics' tab
-            //             // in order to upload metrics to the gorilla database, you will need to use this function!
-            //             gorilla.metric({
-            //                 selectedNumber: selectedNumber, // choice
-            //                 CorrectIncorrect: ThisCorrect,
-            //                 responseTime: responseTime, //RT
-            //                 loc_on_screen: loc_on_screen, //trialNumbers.toString(),
-            //                 isi: isi,
-            //             });
-
-            //             // Since we go in blocks of SB and BS, here we test if had both (is div by 2), then continue, or not, then do the other
-            //             // Let's put in a short pause using a gorilla sequence so the user has some time to take in the result
-            //             sequence = gorilla.addTimerSequence()
-            //                 .delay(100)
-            //                 .then(() => {
-            //                     $('.image').hide();
-            //                     $('.image1').hide();;
-            //                 })
-            //                 .delay(300)
-            //                 .then(() => {
-            //                     iterateAndProgress();
-            //                 })
-            //                 .run();
-
-            //         }); // end number-zone
-
 
             $('.image').one('click', (event: JQueryEventObject) => {
                 // Let's add a new class to the selected number zone so that the user knows it has been clicked
@@ -194,14 +137,19 @@ gorilla.ready(() => {
                 responseTime = gorilla.getStopwatch();
 
                 selectedNumber = 'Left';
-                if (loc_on_screen = 'TestRef') {
+                if (loc_on_screen == 'TestRef') {
                     // Incorrect
                     ThisCorrect = 0;
                     incorrect++;
-                } else if (loc_on_screen = 'RefTest') {
+                    feedback = punishments[currentTrial];
+                    earnings += feedback;
+
+                } else if (loc_on_screen == 'RefTest') {
                     // Correct
                     ThisCorrect = 1;
                     correct++;
+                    feedback = rewards[currentTrial];
+                    earnings += feedback;
                 }
 
                 gorilla.metric({
@@ -210,6 +158,7 @@ gorilla.ready(() => {
                     responseTime: responseTime, //RT
                     loc_on_screen: loc_on_screen, //trialNumbers.toString(),
                     isi: isi,
+                    feedback: feedback,
                 });
 
                 sequence = gorilla.addTimerSequence()
@@ -217,6 +166,22 @@ gorilla.ready(() => {
                     .then(() => {
                         $('.image').hide();
                         $('.image1').hide();
+                    })
+                    .delay(300)
+                    .then(() => {
+                        // Update the value of the feedback by what they earned
+                        if (feedback > 0) {
+                            $('.s-optimal').html(feedback.toString());
+                            $('.s-optimal').show();
+                        } else if (feedback == 0) {
+                            $('.s-suboptimal').html(feedback.toString());
+                            $('.s-suboptimal').show();
+                        }
+                    })
+                    .delay(300)
+                    .then(() => {
+                        $('.s-optimal').hide();
+                        $('.s-suboptimal').hide();
                     })
                     .delay(300)
                     .then(() => {
@@ -239,14 +204,18 @@ gorilla.ready(() => {
                 responseTime = gorilla.getStopwatch();
 
                 selectedNumber = 'Right';
-                if (loc_on_screen = 'RefTest') {
+                if (loc_on_screen == 'RefTest') {
                     // Incorrect
                     ThisCorrect = 0;
                     incorrect++;
-                } else if (loc_on_screen = 'TestRef') {
+                    feedback = punishments[currentTrial];
+                    earnings += feedback;
+                } else if (loc_on_screen == 'TestRef') {
                     // Correct
                     ThisCorrect = 1;
                     correct++;
+                    feedback = rewards[currentTrial];
+                    earnings += feedback;
                 }
 
                 // SaveAndRun();
@@ -256,6 +225,7 @@ gorilla.ready(() => {
                     responseTime: responseTime, //RT
                     loc_on_screen: loc_on_screen, //trialNumbers.toString(),
                     isi: isi,
+                    feedback: feedback,
                 });
 
                 sequence = gorilla.addTimerSequence()
@@ -263,6 +233,15 @@ gorilla.ready(() => {
                     .then(() => {
                         $('.image').hide();
                         $('.image1').hide();
+                    })
+                    .delay(300)
+                    .then(() => {
+                        $('.s-suboptimal').show();
+
+                    })
+                    .delay(300)
+                    .then(() => {
+                        $('.s-suboptimal').hide();
                     })
                     .delay(300)
                     .then(() => {
@@ -277,8 +256,14 @@ gorilla.ready(() => {
             // go further if they do not answer within 3 s
             sequence_resp = gorilla.addTimerSequence()
                 .delay(3000)
-                // .then contains a function which is executed once the previous delay has been finished
                 .then(() => {
+                    $('.image').hide();
+                    $('.image1').hide();
+                })
+                .delay(300)
+                .then(() => {
+                    feedback = punishments[currentTrial];
+                    earnings = earnings + feedback;
                     //No response
                     gorilla.metric({
                         selectedNumber: 'None', // choice
@@ -286,139 +271,25 @@ gorilla.ready(() => {
                         responseTime: -1, //RT
                         loc_on_screen: loc_on_screen, //trialNumbers.toString(),
                         isi: isi,
+                        feedback: feedback,
                     });
                     incorrect++; // count it as a mistake
 
-                    iterateAndProgress();
+                    // iterateAndProgress();
 
+                    $('.s-suboptimal').show();
+                })
+                .delay(300)
+                .then(() => {
+                    $('.s-suboptimal').hide();
+                })
+                .delay(300)
+                .then(() => {
+                    iterateAndProgress();
                 })
                 .run(); // go further
 
         }) // finish populate
-
-
-/////////////////////////////////
-//         // Show images
-//         sequence = gorilla.addTimerSequence()
-//                 .delay(100)
-//                 // give some break after fixation cross
-//                 .then(() => {
-//                     gorilla.populate('#gorilla', 'trial', {});
-//                     $('.image').hide();
-//                     $('.image1').hide();
-//                     $('.gorilla-fixation-cross').hide();
-//                     gorilla.refreshLayout();
-//                 })
-//                 .delay(500)
-
-//         // Present stimuli and collect response
-//                 .then(() => {
-//         //gorilla.populate('#gorilla', 'response', {number1: 'First', number2: 'Second', image: refImage});
-//         // gorilla.populate('#gorilla', 'response', {image: refImage});
-//         //$('.image').show();
-//         //$('.image').css('height', size_one + 'px').css('width', size_one + 'px');
-
-// //  //      //
-//          gorilla.populate('#gorilla', 'trial', {image: refImage, image1: refImage});
-//                     $('.image').show();
-//                     $('.image1').show();
-//                     $('.gorilla-fixation-cross').hide();
-
-//         gorilla.refreshLayout();
-//         // this begins the gorilla stopwatch allowing us to record the reaction time of the user
-//         gorilla.startStopwatch();
-
-//         //$('.number-zone').one('click', (event: JQueryEventObject) => {
-//         $('.stimuli').one('click', (event: JQueryEventObject) => {
-//                     // In DisplyStimuli, it wasn't very obvious that anything had been selected
-//                     // Let's add a new class to the selected number zone so that the user knows it has been clicked
-//                     // This class has been defined in our 'Style' file
-//                     $(event.currentTarget).addClass('selected');
-//                     sequence_resp.cancel(); // for response within 3 s
-
-//                     // In DisplayStimuli, we immediately progressed upon selecting a stimuli
-//                     // Now, we can use gorilla.metric to upload some data about what the user has just done!
-
-//                     // gorilla.stopStopwatch(); this stops the stopwatch.  Note that the time on the stopwatch is still stored
-//                     // (like a real stopwatch) we can retrieve this using getStopwatch
-//                     gorilla.stopStopwatch();
-//                     var responseTime = gorilla.getStopwatch();
-
-//                     // In the template, we included the number in data-number on each number element
-//                     // We can access this now using data('number')
-//                     var selectedNumber = $(event.currentTarget).data('number');
-//                     if(loc_on_screen = 'TestRef'){
-//                     if(selectedNumber == 'Second'){
-//                         // Correct
-//                         ThisCorrect = 1;
-//                         correct++;
-
-//                     } else if (selectedNumber == 'First') {
-//                         // Incorrect
-//                         ThisCorrect = 0;
-//                         incorrect++;
-//                     }
-
-//                     } // end of size_two>size_one
-//                     else if(loc_on_screen = 'RefTest'){
-//                         if(selectedNumber == 'First'){
-//                         // Correct
-//                         ThisCorrect = 1;
-//                         correct++;
-//                         } else if (selectedNumber == 'Second') {
-//                             // Incorrect
-//                             ThisCorrect = 0;
-//                             incorrect++;
-//                         }
-//                     }
-
-//                     // gorilla.metric submits metrics to the database
-//                     // it takes as an arguement a dictonary (a set of key/vlaue pairs)
-//                     // these keys must correspond to the 'key' properties entered in the 'Metrics' tab
-//                     // in order to upload metrics to the gorilla database, you will need to use this function!
-//                     gorilla.metric({
-//                         selectedNumber: selectedNumber, // choice
-//                         CorrectIncorrect: ThisCorrect,
-//                         responseTime: responseTime, //RT
-//                         loc_on_screen: loc_on_screen, //trialNumbers.toString(),
-//                         isi: isi,
-//                     });
-
-//                     // Since we go in blocks of SB and BS, here we test if had both (is div by 2), then continue, or not, then do the other
-//                     // Let's put in a short pause using a gorilla sequence so the user has some time to take in the result
-//                     sequence = gorilla.addTimerSequence()
-//                         .delay(300)
-//                         .then(() => {
-//                             iterateAndProgress();
-//                         })
-//                         .run();
-
-//                 }); // end number-zone
-
-//                 // go further if they do not answer within 3 s
-//                 sequence_resp = gorilla.addTimerSequence()
-//                 .delay(3000)
-//                 // .then contains a function which is executed once the previous delay has been finished
-//                 .then(() => {
-//                             //No response
-//                             gorilla.metric({
-//                                 selectedNumber: 'None', // choice
-//                                 CorrectIncorrect: -1,
-//                                 responseTime: -1, //RT
-//                                 loc_on_screen: loc_on_screen, //trialNumbers.toString(),
-//                                 isi: isi,
-//                             });
-//                             incorrect++; // count it as a mistake
-
-//                             iterateAndProgress();
-
-//                         })
-//                 .run(); // go further
-
-//                 ;}) // finish collection
-
-//                 // run the sequence of SB
-//                 .run();
 
     }
 
@@ -426,21 +297,24 @@ gorilla.ready(() => {
     function DisplayTrial() {
 
         var sequence = null;
+        loc_on_screen = '';
         // correct=0;
 
         // Randomise location
         var rand = Math.random();
         if (rand <= 0.5) {
-            size_one = testSize;
-            size_two = refSize;
-            loc_on_screen = 'TestRef'
-            ShowStimuli();
+            size_one = testSize; // left
+            size_two = refSize;  // right
+            loc_on_screen = 'TestRef';
+            // ShowStimuli();
         } else {
             size_one = refSize;
             size_two = testSize;
-            loc_on_screen = 'RefTest'
-            ShowStimuli();
+            loc_on_screen = 'RefTest';
+            // ShowStimuli();
         }
+
+        ShowStimuli();
     }
 
     function iterateAndProgress() {
@@ -449,10 +323,12 @@ gorilla.ready(() => {
             DisplayTrial();
         } else {
             gorilla.metric({
-                noOfTrials: noOfTrials,
+                numTrials: noOfTrials,
                 pixPerCm: pixPerCm,
-                err: incorrect,
+                incorrect: incorrect,
                 correct: correct,
+                earnings: earnings,
+
             });
 
             DisplayFinish();
@@ -461,10 +337,10 @@ gorilla.ready(() => {
 
     function DisplayFinish() {
         // save for following experiments
-        // var total_earnings = earnings;
-        // var stimuli_name = refImage;
-        // gorilla.store('total_earnings', 0, true);
-        // gorilla.store('stimuli_name', 0, true);
+        var total_earnings = earnings;
+        var stimuli_name = refImage;
+        gorilla.store('total_earnings', 0, true);
+        gorilla.store('stimuli_name', 0, true);
 
         gorilla.finish();
     }
@@ -480,12 +356,13 @@ gorilla.ready(() => {
     //         // these keys must correspond to the 'key' properties entered in the 'Metrics' tab
     //         // in order to upload metrics to the gorilla database, you will need to use this function!
     //         gorilla.metric({
-    //             selectedNumber: selectedNumber, // choice
-    //             CorrectIncorrect: ThisCorrect,
-    //             responseTime: responseTime, //RT
-    //             loc_on_screen: loc_on_screen, //trialNumbers.toString(),
-    //             isi: isi,
-    //         });
+    //     selectedNumber: selectedNumber, // choice
+    //     CorrectIncorrect: ThisCorrect,
+    //     responseTime: responseTime, //RT
+    //     loc_on_screen: loc_on_screen, //trialNumbers.toString(),
+    //     isi: isi,
+    //     feedback: feedback,
+    // });
 
     //         sequence = gorilla.addTimerSequence()
     //             .delay(100)
