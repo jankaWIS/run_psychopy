@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<!--begin-->
+<div class="gorilla-zone" data-bottom="80%" data-left="0%" data-right="0%" data-top="0%">
+    <div class="gorilla-float centered">
+        <h1>Recording responses</h1>
+        <!-- There are lots of ways you can improve the appearence and style of the content your participants see
+            Here, we put emphasis on the word smaller using the bold tag -->
+        <p>Select <b>First</b> if <b>Bigger</b> character appeared first and <b>Second</b> if you think that the second
+            character was Bigger!</p>
+    </div>
+</div>
+<div class="gorilla-zone" data-bottom="0%" data-left="0%" data-right="70%" data-top="0%">
+    <div class="gorilla-float centered">
+        <!-- We will use the class 'number-zone' in our code to determine when a number has been clicked -->
+        <!-- We will use data-number to determine what number has been clicked -->
+        <div class="number-zone" data-number="{{number1}}">{{number1}}</div>
+    </div>
+</div>
+<div class="gorilla-zone" data-bottom="0%" data-left="70%" data-right="0%" data-top="0%">
+    <div class="gorilla-float centered">
+        <div class="number-zone" data-number="{{number2}}">{{number2}}</div>
+    </div>
+</div>
+
+
+<!--end-->
+</body>
+</html>
