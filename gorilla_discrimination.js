@@ -10,19 +10,19 @@ var isi = 500; // inter-stimuli interval (after 1st, after 2nd)
 // Get technical details
 
 // Get the value from Calibration task
-// var pixPerCm = gorilla.retrieve('PxPerCm', 0, true);
-// var JND_px = gorilla.retrieve('JND_px', 0, true);
+var pixPerCm = gorilla.retrieve('PxPerCm', 24, true); // the second is a default value
+var JND_px = gorilla.retrieve('JND_px', 80, true);
 // With this value, you know how many pixels on the participants monitor represent a real life centimetre.
 // So, you can use this to work out how many pixels wide and high your image needs to be for a certain size in centimetres.
 // For example, if you want it to be 5cm in width you would do 5 * pixPerCm to get the number of pixels width required.
 
 //var tech_details = setTechDetails(73.5)
-var pixPerCm = 24;
-var JND_px = 80;
+// var pixPerCm = 24;
+// var JND_px = 80;
 var refSize_cm = 7.4;
 var refSize = Math.round(pixPerCm * refSize_cm);
-// var stimuli_name = gorilla.retrieve('stimuli_name', 0, true);
-var stimuli_name = 'Asset 45.png'; // MUST be the same as learning game
+var stimuli_name = gorilla.retrieve('stimuli_name', 'Asset 45.png', true);
+// var stimuli_name = 'Asset 45.png'; // MUST be the same as learning game
 
 // var refSize = 220; //tech_details.px_refSize_rect
 var size_one = 0;// pixPerCm * refSize_cm;
