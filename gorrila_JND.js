@@ -1,6 +1,4 @@
-import gorilla
-
-= require('gorilla/gorilla');
+import gorilla = require('gorilla/gorilla');
 
 // Parameters
 
@@ -10,34 +8,34 @@ var isi = 500; // inter-stimuli interval (after 1st, after 2nd)
 // initialize
 var ratio = 2; // by how much to decrease the JND
 var prev = 1;
-var first_error = 0;
 var currentTrial = 0;
 var err = 0 // number of errors
 var staircaseJND = 0 // in px
+var staircaseJNDinMM = 0
 var correct = 0;
 
 
-// // Get technical details
+// Get technical details
 
 // Get the value from Calibration task
-// var pixPerCm = gorilla.retrieve('PxPerCm', 0, true);
-// // With this value, you know how many pixels on the participants monitor represent a real life centimetre.
-// // So, you can use this to work out how many pixels wide and high your image needs to be for a certain size in centimetres.
-// // For example, if you want it to be 5cm in width you would do 5 * pixPerCm to get the number of pixels width required.
+var pixPerCm = gorilla.retrieve('PxPerCm', 24, true);
+// With this value, you know how many pixels on the participants monitor represent a real life centimetre.
+// So, you can use this to work out how many pixels wide and high your image needs to be for a certain size in centimetres.
+// For example, if you want it to be 5cm in width you would do 5 * pixPerCm to get the number of pixels width required.
 
-// //var tech_details = setTechDetails(73.5)
-// var refSize_cm = 7.4;
+//var tech_details = setTechDetails(73.5)
+var refSize_cm = 7.4;
 
-var refSize = 220; //tech_details.px_refSize_rect
-// var refSize = pixPerCm * refSize_cm;
+// var refSize = 220; //tech_details.px_refSize_rect
+var refSize = pixPerCm * refSize_cm;
 var initial_ratio = 0.3; // how far apart should they start, default 30 % of refSize
-var initial = initial_ratio * refSize
+var initial = initial_ratio*refSize
 var testSize = refSize + initial;
 var diff = testSize - refSize // difference between stimuli sizes
-var stimScreen = 500; // fo
+var stimScreen = 500; // how long are stimuli on screen, ms
 
 
-gorilla.ready(() => {
+gorilla.ready(()=> {
     // attach the responsive resizing logic to the container
     // this allows the contents of the screen to resize, depending on the size of the browser window
     gorilla.responsiveFrame('#gorilla');
@@ -83,67 +81,70 @@ gorilla.ready(() => {
         var ThisCorrect = 5 // just to have some value in case the code does not work
         currentTrial++;
 
+        $('#gorilla').hide();
+        gorilla.populateAndLoad('#gorilla', 'trial_response', {image: refImage, number1: 'First', number2: 'Second'}, ()=>{
+        $('#gorilla').show();
+
+        // Hide all
+        $('.image').hide();
+        $('.gorilla-fixation-cross').hide();
+        $('.gorilla-hint').hide();
+        $('.number-zone').hide();
+
+
         // Show images
         sequence = gorilla.addTimerSequence()
-            .delay(100)
-            // show fixation cross
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').show();
-                gorilla.refreshLayout();
-            })
-            .delay(FixationLength)
-            // give some break after fixation cross
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').hide();
-                gorilla.refreshLayout();
-            })
-            .delay(500)
-            // show first image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {image: refImage});
-                $('.gorilla-fixation-cross').hide();
-                $('.image').css('height', refSize + 'px').css('width', refSize + 'px');
-                gorilla.refreshLayout();
-            })
-            .delay(stimScreen)
-            // give some break after first image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').hide();
-                gorilla.refreshLayout();
-            })
-            .delay(isi)
-            // show second image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {image: refImage});
-                $('.gorilla-fixation-cross').hide();
-                $('.image').css('height', testSize + 'px').css('width', testSize + 'px');
-                gorilla.refreshLayout();
-            })
-            .delay(stimScreen)
-            // give some break after the second image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').hide();
-                gorilla.refreshLayout();
-            })
-            .delay(isi)
+                .delay(100)
+                // show fixation cross
+                .then(() => {
+                    $('.gorilla-fixation-cross').show();
+                    gorilla.refreshLayout();
+                })
+                .delay(FixationLength)
+                // give some break after fixation cross
+                .then(() => {
+                    $('.gorilla-fixation-cross').hide();
+                    gorilla.refreshLayout();
+                })
+                .delay(500)
+                // show first image
+                .then(() => {
+                    $('.image').show();
+                    $('.image').css('height', refSize + 'px').css('width', refSize + 'px');
+                    gorilla.refreshLayout();
+                })
+                .delay(stimScreen)
+                // give some break after first image
+                .then(() => {
+                    $('.image').hide();
+                    gorilla.refreshLayout();
+                })
+                .delay(isi)
+                // show second image
+                .then(() => {
+                    $('.image').show();
+                    $('.image').css('height', testSize + 'px').css('width', testSize + 'px');
+                    gorilla.refreshLayout();
+                })
+                .delay(stimScreen)
+                // give some break after the second image
+                .then(() => {
+                    $('.image').hide();
+                    gorilla.refreshLayout();
+                })
+                .delay(isi)
 
-            // Not a good way of doing that but collect response here and now
-            .then(() => {
-                gorilla.populate('#gorilla', 'response', {number1: 'First', number2: 'Second'});
-                gorilla.refreshLayout();
-                // this begins the gorilla stopwatch allowing us to record the reaction time of the user
-                gorilla.startStopwatch();
+        // Not a good way of doing that but collect response here and now
+                .then(() => {
+        $('.number-zone').show();
+        $('.gorilla-hint').show();
+        gorilla.refreshLayout();
 
-                $('.number-zone').one('click', (event: JQueryEventObject) => {
-                    // In DisplyStimuli, it wasn't very obvious that anything had been selected
+        // this begins the gorilla stopwatch allowing us to record the reaction time of the user
+        gorilla.startStopwatch();
+
+        $('.number-zone').one('click', (event: JQueryEventObject) => {
+                      // In DisplyStimuli, it wasn't very obvious that anything had been selected
                     // Let's add a new class to the selected number zone so that the user knows it has been clicked
                     // This class has been defined in our 'Style' file
                     $(event.currentTarget).addClass('selected');
@@ -160,7 +161,7 @@ gorilla.ready(() => {
                     // In the template, we included the number in data-number on each number element
                     // We can access this now using data('number')
                     var selectedNumber = $(event.currentTarget).data('number');
-                    if (selectedNumber == 'Second') {
+                    if(selectedNumber == 'Second'){
                         // Correct
                         ThisCorrect = 1;
                         correct++;
@@ -187,11 +188,8 @@ gorilla.ready(() => {
                     sequence = gorilla.addTimerSequence()
                         .delay(300)
                         .then(() => {
-                            if (currentTrial % 2 === 0) {
-                                iterateAndProgress();
-                            } else {
-                                BiggerSmaller();
-                            }
+                            if (currentTrial % 2 === 0){iterateAndProgress();
+                            } else {BiggerSmaller();}
                         })
                         .run();
 
@@ -199,31 +197,29 @@ gorilla.ready(() => {
 
                 // go further if they do not answer within 3 s
                 sequence_resp = gorilla.addTimerSequence()
-                    .delay(3000)
-                    // .then contains a function which is executed once the previous delay has been finished
-                    .then(() => {
-                        //No response
-                        gorilla.metric({
-                            selectedNumber: 'None', // choice
-                            CorrectIncorrect: -1,
-                            responseTime: -1, //RT
-                            order: order.toString(), //trialNumbers.toString(),
-                            isi: isi,
-                        });
-                        err++; // count it as a mistake
+                .delay(3000)
+                // .then contains a function which is executed once the previous delay has been finished
+                .then(() => {
+                            //No response
+                            gorilla.metric({
+                                selectedNumber: 'None', // choice
+                                CorrectIncorrect: -1,
+                                responseTime: -1, //RT
+                                order: order.toString(), //trialNumbers.toString(),
+                                isi: isi,
+                            });
+                            err++; // count it as a mistake
 
-                        if (currentTrial % 2 === 0) {
-                            iterateAndProgress();
-                        } else {
-                            BiggerSmaller();
-                        }
-                    })
-                    .run(); // go further
+                            if (currentTrial % 2 === 0){iterateAndProgress();
+                            } else {BiggerSmaller();}
+                        })
+                .run(); // go further
 
-            }) // finish collection
+                }) // finish collection
 
-            // run the sequence of SB
-            .run();
+                // run the sequence of SB
+                .run();
+        }) // finish populate
 
     }
 
@@ -235,66 +231,68 @@ gorilla.ready(() => {
         var ThisCorrect = 5 // just to have some value in case the code does not work
         currentTrial++;
 
+        $('#gorilla').hide();
+        gorilla.populateAndLoad('#gorilla', 'trial_response', {image: refImage, number1: 'First', number2: 'Second'}, ()=>{
+        $('#gorilla').show();
+
+        // Hide all
+        $('.image').hide();
+        $('.gorilla-fixation-cross').hide();
+        $('.gorilla-hint').hide();
+        $('.number-zone').hide();
+
         // Show images
         sequence = gorilla.addTimerSequence()
-            .delay(100)
-            // show fixation cross
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').show();
-                gorilla.refreshLayout();
-            })
-            .delay(FixationLength)
-            // give some break after fixation cross
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').hide();
-                gorilla.refreshLayout();
-            })
-            .delay(500)
-            // show first Bigger image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {image: refImage});
-                $('.gorilla-fixation-cross').hide();
-                $('.image').css('height', testSize + 'px').css('width', testSize + 'px');
-                gorilla.refreshLayout();
-            })
-            .delay(stimScreen)
-            // give some break after first image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').hide();
-                gorilla.refreshLayout();
-            })
-            .delay(isi)
-            // show second image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {image: refImage});
-                $('.gorilla-fixation-cross').hide();
-                $('.image').css('height', refSize + 'px').css('width', refSize + 'px');
-                gorilla.refreshLayout();
-            })
-            .delay(stimScreen)
-            // give some break after the second image
-            .then(() => {
-                gorilla.populate('#gorilla', 'trial', {});
-                $('.image').hide();
-                $('.gorilla-fixation-cross').hide();
-                gorilla.refreshLayout();
-            })
-            .delay(isi)
+                .delay(100)
+                // show fixation cross
+                .then(() => {
+                    $('.gorilla-fixation-cross').show();
+                    gorilla.refreshLayout();
+                })
+                .delay(FixationLength)
+                // give some break after fixation cross
+                .then(() => {
+                    $('.gorilla-fixation-cross').hide();
+                    gorilla.refreshLayout();
+                })
+                .delay(500)
+                // show first Bigger image
+                .then(() => {
+                    $('.image').show();
+                    $('.image').css('height', testSize + 'px').css('width', testSize + 'px');
+                    gorilla.refreshLayout();
+                })
+                .delay(stimScreen)
+                // give some break after first image
+                .then(() => {
+                    $('.image').hide();
+                    gorilla.refreshLayout();
+                })
+                .delay(isi)
+                // show second image
+                .then(() => {
+                    $('.image').show();
+                    $('.image').css('height', refSize + 'px').css('width', refSize + 'px');
+                    gorilla.refreshLayout();
+                })
+                .delay(stimScreen)
+                // give some break after the second image
+                .then(() => {
+                    $('.image').hide();
+                    gorilla.refreshLayout();
+                })
+                .delay(isi)
 
-            // Not a good way of doing that but collect response here and now
-            .then(() => {
-                gorilla.populate('#gorilla', 'response', {number1: 'First', number2: 'Second'});
-                gorilla.refreshLayout();
-                // this begins the gorilla stopwatch allowing us to record the reaction time of the user
-                gorilla.startStopwatch();
+        // Not a good way of doing that but collect response here and now
+                .then(() => {
+        $('.number-zone').show();
+        $('.gorilla-hint').show();
+        gorilla.refreshLayout();
 
-                $('.number-zone').one('click', (event: JQueryEventObject) => {
+        // this begins the gorilla stopwatch allowing us to record the reaction time of the user
+        gorilla.startStopwatch();
+
+        $('.number-zone').one('click', (event: JQueryEventObject) => {
                     // Show it has been clicked by frame defined in 'Style' file
                     $(event.currentTarget).addClass('selected');
                     sequence_resp.cancel(); // for response within 3 s
@@ -306,7 +304,7 @@ gorilla.ready(() => {
                     // In the template, we included the number in data-number on each number element
                     // We can access this now using data('number')
                     var selectedNumber = $(event.currentTarget).data('number');
-                    if (selectedNumber == 'First') {
+                    if(selectedNumber == 'First'){
                         // Correct
                         ThisCorrect = 1;
                         correct++;
@@ -336,11 +334,8 @@ gorilla.ready(() => {
                     sequence = gorilla.addTimerSequence()
                         .delay(300)
                         .then(() => {
-                            if (currentTrial % 2 === 0) {
-                                iterateAndProgress();
-                            } else {
-                                SmallerBigger();
-                            }
+                            if (currentTrial % 2 === 0){iterateAndProgress();
+                            } else {SmallerBigger();}
                         })
                         .run();
 
@@ -348,31 +343,29 @@ gorilla.ready(() => {
 
                 // go further if they do not answer within 3 s
                 sequence_resp = gorilla.addTimerSequence()
-                    .delay(3000)
-                    // .then contains a function which is executed once the previous delay has been finished
-                    .then(() => {
-                        //No response
-                        gorilla.metric({
-                            selectedNumber: 'None', // choice
-                            CorrectIncorrect: -1,
-                            responseTime: -1, //RT
-                            order: order.toString(), //trialNumbers.toString(),
-                            isi: isi,
-                        });
-                        err++; // count it as a mistake
+                .delay(3000)
+                // .then contains a function which is executed once the previous delay has been finished
+                .then(() => {
+                            //No response
+                            gorilla.metric({
+                                selectedNumber: 'None', // choice
+                                CorrectIncorrect: -1,
+                                responseTime: -1, //RT
+                                order: order.toString(), //trialNumbers.toString(),
+                                isi: isi,
+                            });
+                            err++; // count it as a mistake
 
-                        if (currentTrial % 2 === 0) {
-                            iterateAndProgress();
-                        } else {
-                            SmallerBigger();
-                        }
-                    })
-                    .run(); // go further
+                            if (currentTrial % 2 === 0){iterateAndProgress();
+                            } else {SmallerBigger();}
+                        })
+                .run(); // go further
 
-            }) // finish collection
+                }) // finish collection
 
-            // run the sequence of BS
-            .run();
+                // run the sequence of BS
+                .run();
+        }) // finish populate
 
     }
 
@@ -380,21 +373,20 @@ gorilla.ready(() => {
     function DisplayTrial() {
 
         var sequence = null;
-        correct = 0;
+        correct=0;
 
         // Randomise order
         var rand = Math.random();
-        if (rand <= 0.5) {
+        if(rand <= 0.5){
             SmallerBigger();
         } else {
-            //SmallerBigger();
             BiggerSmaller();
         }
     }
 
-    function iterateAndProgress() {
+    function iterateAndProgress(){
         // compute correct/incorrect and next trial parameters, if convergence criterion met, stop
-        if (correct === 2) {
+        if(correct === 2) {
             // decrease step
             if (prev === 0 && (ratio * 0.9) > 1) {
                 ratio = ratio * 0.9;
@@ -419,23 +411,24 @@ gorilla.ready(() => {
                 ratio: ratio,
             });
 
-            if (err < 7) {
+            if(err < 7){
                 DisplayTrial();
             } else {
 
                 // save vars
-                //var staircaseJNDinMM = staircaseJND/ pixPerCm; //tech_details.screen_data.screenPpm[0];
-                // gorilla.metric({
-                // numTrials: currentTrial,
-                // JND_px: staircaseJND,
-                // JND_mm: staircaseJNDinMM,
-                //ExpTime: endTime - startTime;
-                //screen_details: screen_data,
-                // });
+                staircaseJNDinMM = staircaseJND/ pixPerCm; //tech_details.screen_data.screenPpm[0];
+                gorilla.metric({
+                numTrials: currentTrial,
+                JND_px: staircaseJND,
+                JND_mm: staircaseJNDinMM,
+                PxPerCm: pixPerCm,
+                // ExpTime: endTime - startTime;
+                // screen_details: screen_data,
+            });
                 DisplayFinish();
-            }
+        }
 
-            // end if correct == 2
+        // end if correct == 2
         } else {
             // increase step
             if (prev === 1 && (ratio * 0.9) > 1) {
@@ -461,59 +454,19 @@ gorilla.ready(() => {
 
     }
 
-    function DisplayFinish() {
-        // save for following experiments
-        var JND_px = staircaseJND
-        // var JND_mm = staircaseJNDinMM
-        gorilla.store('JND_px', 0, true);
-        // gorilla.store('JND_mm', 0, true);
+    function DisplayFinish(){
+                // save for following experiments
+                var JND_px = staircaseJND
+                var JND_mm = staircaseJNDinMM
+                gorilla.store('JND_px', 0, true);
+                gorilla.store('JND_mm', 0, true);
 
-        gorilla.finish();
-    }
+            gorilla.finish();
+        }
 
-
-    gorilla.run(function () {
+    gorilla.run(function(){
         DisplayInstructions();
     });
 
 });
 
-
-// Resize stimuli
-
-function setTechDetails(refSize_cm) {
-
-    // print screen resolution
-    var oldResolution = [555, 555]; // need to get
-
-    // extract weight and hight of screen (in mm)
-    var screen_width = 666 // extract
-    var screen_height = 666
-    var x_max //the number of pixels for the x axe, i.e. the width of the screen in px
-
-    // compute pixel per inch (or per mm, ppi ot ppm)
-    var w_ppm = oldResolution[0] / screen_width;
-    var h_ppm = oldResolution[1] / screen_height;
-
-    // Determine reference size - in pixels according to ppm
-    var px_refSize_ppm = w_ppm * refSize;
-
-    // Determine reference size - in pixels according to windowRect
-    var px_refSize_rect = (x_max / screen_width) * refSize;
-
-    var screen_data = {
-        'screenResolution': oldResolution,
-        'screenSizeInMM': [screen_width, screen_height],
-        'screenPpm': [w_ppm, h_ppm],
-        'GivenRefSize': refSize_cm,
-        'px_refSize_rect': px_refSize_rect,
-        'px_refSize_ppm': px_refSize_ppm,
-        //'final_height_px': final_height_px,
-        //'final_width_px': final_width_px,
-    };
-
-    return {
-        'px_refSize_rect': px_refSize_rect,
-        'screen_data': screen_data,
-    };
-}
