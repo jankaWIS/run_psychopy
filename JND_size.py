@@ -62,7 +62,8 @@ for mon in monitors.getAllMonitors():
 
 screen_size = screen_sizes[0]
 
-path2stim = './stimuli/croped_images_360x360_px/'
+#path2stim = './stimuli/croped_images_360x360_px/'
+path2stim = '/home/jan/PycharmProjects/run_psychopy/stimuli/croped_images_360x360_px/'
 
 subj = 'test'
 refSize = 277  # 7.35 #360 #px #screen_size//4 # 73.5 mm
