@@ -58,7 +58,7 @@ gorilla.ready(()=> {
 
     // Randomly pick one image from the set of uploaded
     function imagePicker() {
-        var stimuliImages = ['Asset 44.png', 'Asset 45.png', 'Asset 46.png', 'Asset 47.png', 'Asset 48.png', 'Asset 49.png']
+        var stimuliImages = ['Asset 44.png', 'Asset 45.png', 'Asset 46.png', 'Asset 47.png', 'Asset 49.png']
 
         var image = '';
 
@@ -73,6 +73,11 @@ gorilla.ready(()=> {
 
     // Select one reference image
     var refImage = imagePicker();
+
+    // Save
+    gorilla.metric({
+        stimuli_name: refImage,
+    });
 
     function SmallerBigger() {
         var order = 'SB'
@@ -458,8 +463,8 @@ gorilla.ready(()=> {
                 // save for following experiments
                 var JND_px = staircaseJND
                 var JND_mm = staircaseJNDinMM
-                gorilla.store('JND_px', 0, true);
-                gorilla.store('JND_mm', 0, true);
+                gorilla.store('JND_px', JND_px, true);
+                gorilla.store('JND_mm', JND_mm, true);
 
             gorilla.finish();
         }
